@@ -1,0 +1,15 @@
+# Q Bot Requirements
+
+# Discord library
+discord.py>=2.4.0
+
+# Environment variables (optional)
+python-dotenv>=1.0.0
+
+# Encryption for database
+cryptography>=42.0.0
+
+# Async support (usually included with Python 3.7+)
+# asyncio is built-in
+
+# Note: Python 3.8+ required
