@@ -1,13 +1,18 @@
 # commands.py — ULTIMATE DM Command System (Owner Only)
 import discord
-from db_manager import load_db, save_db, add_to_audit_log
+from db_manager import load_db, save_db, add_to_audit_log, increment_stat
 from logger import logger
 from dm_notify import alert_simple, get_alert_stats
 from config import OWNER_ID, GUILD_ID, PREFIX
-from filters import *
-from whitelist import *
+from filters import (
+    should_alert, get_priority, toggle_filter, set_filter,
+    get_filters_status, enable_all_filters, disable_all_filters, reset_filters
+)
+from whitelist import (
+    add_to_whitelist, remove_from_whitelist, get_whitelist_users, get_whitelist_display
+)
 from quick_actions import handle_quick_action_response, get_pending_actions_count, pending_actions
-from utils import parse_user_id, format_user, format_timestamp
+from utils import parse_user_id, format_user, format_timestamp, format_channel, format_role, format_duration, get_account_age, get_member_age
 from permissions import format_role_info, analyze_permissions
 import datetime
 
@@ -393,8 +398,6 @@ async def _cmd_info(message: discord.Message, parts: list, bot):
     
     if member:
         # Full member info
-        from utils import get_account_age, get_member_age
-        
         lines = [
             f"**👤 Member Info**",
             f"**User:** {format_user(member)}",
@@ -583,6 +586,8 @@ async def _cmd_ban(message: discord.Message, parts: list, bot):
             'reason': reason
         })
         
+        increment_stat('bans')
+        
         await message.author.send(f'✅ Banned user `{user_id}`\n**Reason:** {reason}')
         logger.info(f'Banned {user_id} by owner')
     except Exception as e:
@@ -676,7 +681,6 @@ async def _cmd_timeout(message: discord.Message, parts: list, bot):
             'duration_minutes': duration_minutes
         })
         
-        from utils import format_duration
         await message.author.send(f'✅ Timeout applied to {member}\n**Duration:** {format_duration(duration_minutes * 60)}')
         logger.info(f'Timeout {user_id} for {duration_minutes}m by owner')
     except Exception as e:
@@ -792,7 +796,7 @@ async def _cmd_members(message: discord.Message, bot):
 
 async def _cmd_settings(message: discord.Message):
     """Show current settings"""
-    from config import *
+    from config import BOT_NAME, DM_ALERTS, ENCRYPT_DB, QUICK_ACTIONS_ENABLED, ENABLE_FAKE_COMMANDS
     
     lines = [
         "⚙️ **Current Settings**\n",
