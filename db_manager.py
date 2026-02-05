@@ -3,7 +3,7 @@ import json
 import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from logger import logger
 from config import DB_ENCRYPTION_KEY, ENCRYPT_DB
 
@@ -11,11 +11,11 @@ DB_PATH = 'db.json'
 
 # Generate encryption key from password
 def _generate_key(password: str) -> bytes:
-    kdf = PBKDF2(
+    kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
         salt=b'q_bot_salt_2024',  # Static salt (في production استخدم salt عشوائي)
-        iterations=100000,
+        iterations=100_000,
     )
     key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
     return key
